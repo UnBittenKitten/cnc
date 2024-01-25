@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+//version 1.1
 #define MAX_SIZE 20
 
 typedef struct {
@@ -23,6 +23,9 @@ dynStr* dyn_str_init() {
 }
 
 void dyn_str_free(dynStr* dyn_str) {
+    if(!dyn_str) return;
+    if(!(dyn_str->str)) return;
+    if(!(*dyn_str->str)) return;
     free(*(dyn_str->str));
     free(dyn_str->str);
     free(dyn_str->lfe);
@@ -32,6 +35,9 @@ void dyn_str_free(dynStr* dyn_str) {
 }
 
 void dyn_str_add(dynStr* dyn_str, char conStr[]) {
+    if(!dyn_str) return;
+    if(!(dyn_str->str)) return;
+    if(!(*dyn_str->str)) return;
     //increase conditions
     if(strlen(conStr) + 1 > *(dyn_str->limit) - *(dyn_str->lfe) - 1) {
         //printf("INCREASING SIZE\n"); //DEBUG
@@ -52,6 +58,9 @@ void dyn_str_add(dynStr* dyn_str, char conStr[]) {
 }
 
 void dyn_str_print(dynStr* dyn_str, int printNewLine) {
+    if(!dyn_str) return;
+    if(!(dyn_str->str)) return;
+    if(!(*dyn_str->str)) return;
     printf("%s", *(dyn_str->str));
     if(printNewLine) {
         printf("\n");
@@ -59,9 +68,51 @@ void dyn_str_print(dynStr* dyn_str, int printNewLine) {
 }
 
 void dyn_str_del(dynStr* dyn_str) {
+    if(!dyn_str) return;
+    if(!(dyn_str->str)) return;
+    if(!(*dyn_str->str)) return;
     free(*dyn_str->str);
     *(dyn_str->lfe) = 0;
     *(dyn_str->limit) = MAX_SIZE;
+}
+
+void dyn_str_rev(dynStr* dyn_str) {
+    if(!dyn_str) return;
+    if(!(dyn_str->str)) return;
+    if(!(*dyn_str->str)) return;
+
+    dynStr* temp = dyn_str_init();
+    int i = strlen(*dyn_str->str);
+    char holdstr[2];
+    holdstr[1] = 0;
+    while(i >= 0) {
+        holdstr[0] = *(*(dyn_str->str) + i);
+        dyn_str_add(temp, holdstr);
+
+        i--;
+    }    
+    strcpy(*(dyn_str->str), *(temp->str));
+
+
+    dyn_str_free(temp);
+}
+
+void dyn_str_addchar(dynStr* dyn_str, char chr) {
+    if(!dyn_str) return;
+    if(!(dyn_str->str)) return;
+    if(!(*dyn_str->str)) return;
+
+    if(2 > *(dyn_str->limit) - *(dyn_str->lfe) - 1) {
+        //printf("INCREASING SIZE\n"); //DEBUG
+        *(dyn_str->limit) = *(dyn_str->limit) * 2;
+        *(dyn_str->str) = (char*)realloc(*(dyn_str->str), *(dyn_str->limit));
+    }
+
+    *((*dyn_str->str) + *(dyn_str->lfe)) = chr;
+    *(dyn_str->lfe) = *(dyn_str->lfe) + 1;
+    *(*(dyn_str->str) + *(dyn_str->lfe)) = 0;
+
+
 }
 
 // void dyn_str_copy(dynStr* dest, char src[]) {
