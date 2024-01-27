@@ -8,7 +8,7 @@
 *.elf
 
 #vscode settings
-*.vscode
+.vscode/
 
 # Linker output
 *.ilk
