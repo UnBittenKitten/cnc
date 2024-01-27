@@ -7,6 +7,9 @@
 *.obj
 *.elf
 
+#vscode settings
+*.vscode
+
 # Linker output
 *.ilk
 *.map
