@@ -38,11 +38,11 @@ void dyn_str_add(dynStr* dyn_str, char conStr[]) {
     if(!dyn_str) return;
     if(!(dyn_str->str)) return;
     if(!(*dyn_str->str)) return;
-    //increase conditions
-    if(strlen(conStr) + 1 > *(dyn_str->limit) - *(dyn_str->lfe) - 1) {
-        //printf("INCREASING SIZE\n"); //DEBUG
+
+    //can improve by only resizing once even if the limit is increased more than once
+    while(strlen(conStr) + 1 > *(dyn_str->limit) - *(dyn_str->lfe) - 1) {
         *(dyn_str->limit) = *(dyn_str->limit) * 2;
-        *(dyn_str->str) = (char*)realloc(*(dyn_str->str), *(dyn_str->limit));
+        *(dyn_str->str) = (char*)realloc(*(dyn_str->str), *(dyn_str->limit)); 
     }
 
     int orgSize = strlen(conStr);
@@ -65,15 +65,6 @@ void dyn_str_print(dynStr* dyn_str, int printNewLine) {
     if(printNewLine) {
         printf("\n");
     }
-}
-
-void dyn_str_del(dynStr* dyn_str) {
-    if(!dyn_str) return;
-    if(!(dyn_str->str)) return;
-    if(!(*dyn_str->str)) return;
-    free(*dyn_str->str);
-    *(dyn_str->lfe) = 0;
-    *(dyn_str->limit) = MAX_SIZE;
 }
 
 void dyn_str_rev(dynStr* dyn_str) {
@@ -115,6 +106,41 @@ void dyn_str_addchar(dynStr* dyn_str, char chr) {
 
 }
 
-// void dyn_str_copy(dynStr* dest, char src[]) {
+void dyn_str_clear(dynStr* dyn_str, int resize) {
+    if(!dyn_str) return;
+
+    if(resize) {
+        free(*(dyn_str->str));
+        *(dyn_str->str) = (char*)malloc(sizeof(char) * MAX_SIZE);
+        *(dyn_str->lfe) = 0;
+        *(dyn_str->limit) = MAX_SIZE;
+        return;
+    }
+
+    for(int i = 0; i < *dyn_str->lfe; i++) {
+        //*(*(dyn_str->str) + i) = ' ';
+        *(*(dyn_str->str) + i) = 0;
+    }
+    *(dyn_str->lfe) = 0;
+
+}
+
+void dyn_str_copy(dynStr* dest, char source[], int resize) {
+    if(!dest) return;
+    if(!(dest->str)) return;
+    if(!(*dest->str)) return;
+
+    // while(strlen(conStr) + 1 > *(dyn_str->limit) - *(dyn_str->lfe) - 1) {
+    //     *(dyn_str->limit) = *(dyn_str->limit) * 2;
+    //     *(dyn_str->str) = (char*)realloc(*(dyn_str->str), *(dyn_str->limit));
+    // }
     
-// }
+    dyn_str_clear(dest, resize);
+    while(strlen(source) + 1 > *dest->limit - 1) {
+        *(dest->limit) = *(dest->limit) * 2;
+    }
+
+    strcpy(*(dest->str), source);
+    *(dest->lfe) = strlen(source);
+
+}
