@@ -10,7 +10,11 @@
 //Floating point numbers
 //Transform between the bases (2 - 36)
 //If posible add arbitrary big numbers
-#include "dynStr.h"
+#include "libs/dynStr.h"
+#include "libs/gmp.h"
+#include "libs/limits.h"
+#include "libs/stddef.h"
+#include "libs/syslimits.h"
 
 int hexvalue(char chr) {
     if(chr >= 48 && chr <= 57) {
