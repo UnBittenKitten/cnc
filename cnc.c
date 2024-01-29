@@ -1,12 +1,11 @@
-//Version 1.0.1
+//Version 1.1
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> 
 #include <math.h>
+#include <Windows.h>
 //Future functionality
-//Add trailing 0s for binary numbers
-//Also separate binary numbers in groups of 4
 //Floating point numbers
 //Transform between the bases (2 - 36)
 //If posible add arbitrary big numbers
@@ -36,6 +35,39 @@ void removecaps(dynStr* dyn_str) {
         }
         i++;
     }
+}
+
+void dyn_str_custom_print(dynStr* dyn_str, int printNewLine) {
+    if(!dyn_str) return;
+    if(!(dyn_str->str)) return;
+    if(!(*dyn_str->str)) return;
+    
+    //int i = 4 - (strlen(*dyn_str->str) % 4);
+    int i = (strlen(*dyn_str->str) % 4) == 0 ? 0 : 4 - (strlen(*dyn_str->str) % 4);
+    //printf("i = %d\n", i);
+    int j = i;
+    while(i > 0) {
+        printf("0");
+        i--;
+    }
+
+    int k = 0;
+    while(*((*dyn_str->str) + k) != 0) {
+        printf("%c", *((*dyn_str->str) + k));
+        if(*((*dyn_str->str) + k + 1) == 0) {
+            //printf("a");
+        }
+        if((j + 1) % 4 == 0 && *((*dyn_str->str) + k + 1) != 0) {
+            printf(" ");
+        }
+
+        k++;
+        j++;
+    }
+    
+    //printf("%s", *dyn_str->str);
+    if(printNewLine) printf("\n");
+
 }
 
 int strval1(char str[]) {
@@ -167,6 +199,10 @@ void dec_to_bin(dynStr** dyn_str, long long int num) {
     long long int new_int = num;
     int temp;
 
+    if(num == 0) {
+        dyn_str_addchar(*dyn_str, '0');
+    }
+
     //dyn_str_del(*(dyn_str));
     dyn_str_clear(*dyn_str, 0);
     while(new_int > 0) {
@@ -186,6 +222,10 @@ void dec_to_oct(dynStr** dyn_str, long long int num) {
     long long int new_int = num;
     int temp_int;
 
+    if(num == 0) {
+        dyn_str_addchar(*dyn_str, '0');
+    }
+
     while(new_int > 0) {
         temp_int = new_int % 8;
         dyn_str_addchar(*(dyn_str), temp_int + 48);
@@ -197,6 +237,10 @@ void dec_to_oct(dynStr** dyn_str, long long int num) {
 void dec_to_hex(dynStr** dyn_str, long long int num) {
     long long int new_int = num;
     int temp_int;
+
+    if(num == 0) {
+        dyn_str_addchar(*dyn_str, '0');
+    }
 
     while(new_int > 0) {
         temp_int = new_int % 16;
@@ -248,7 +292,8 @@ void out_oct_bin(dynStr** result, dynStr* holder, int newline) {
     if(oct_val(holder)) {
         dyn_str_clear(*result, 0);
         dec_to_bin(result, oct_to_dec(holder));
-        dyn_str_print(*result, newline);
+        //dyn_str_print(*result, newline);
+        dyn_str_custom_print(*result, newline);
     } else {
         printf("NVoct");
         if(newline) printf("\n");
@@ -279,7 +324,8 @@ void out_dec_bin(dynStr** result, dynStr* holder, int newline) {
     if(dec_val(holder)) {
         dyn_str_clear(*result, 0);
         dec_to_bin(result, dec_to_ll(holder));
-        dyn_str_print(*result, newline);
+        //dyn_str_print(*result, newline);
+        dyn_str_custom_print(*result, newline);
     } else {
         printf("NVdec");
         if(newline) printf("\n");
@@ -312,7 +358,8 @@ void out_hex_bin(dynStr** result, dynStr* holder, int newline) {
     if(hex_val(holder)) {
         dyn_str_clear(*result, 0);
         dec_to_bin(result, hex_to_dec(holder));
-        dyn_str_print(*result, newline);
+        //dyn_str_print(*result, newline);
+        dyn_str_custom_print(*result, newline);
     } else {
         printf("NVhex");
         if(newline) printf("\n");
@@ -386,11 +433,21 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-
+    HANDLE hCon = GetStdHandle(STD_OUTPUT_HANDLE);
+    
+    int j = 0;
     int i = 0;
+    int dflCol = 7;
+    int sndCol = 3;
     if(!strcmp(argv[1], "bin")) {
         if(!strcmp(argv[2], "oct")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(bin_val(holder)) {
                     out_bin_oct(result, holder, 0);
@@ -403,6 +460,12 @@ int main(int argc, char* argv[]) {
         }
         if(!strcmp(argv[2], "dec")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(bin_val(holder)) {
                     out_bin_dec(result, holder, 0);
@@ -415,6 +478,12 @@ int main(int argc, char* argv[]) {
         }
         if(!strcmp(argv[2], "hex")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(bin_val(holder)) {
                     out_bin_hex(result, holder, 0);
@@ -430,7 +499,8 @@ int main(int argc, char* argv[]) {
                 printf("\n");
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(bin_val(holder)) {
-                    dyn_str_print(holder, 0);
+                    //dyn_str_print(holder, 0);
+                    dyn_str_custom_print(holder, 0);
                     printf("_(2)\n");
                     out_bin_oct(result, holder, 0);
                     printf("_(8)\n");
@@ -450,9 +520,16 @@ int main(int argc, char* argv[]) {
     if(!strcmp(argv[1], "oct")) {
         if(!strcmp(argv[2], "bin")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(oct_val(holder)) {
                     out_oct_bin(result, holder, 0);
+                    printf(" ");
                 } else {
                     printf("NVoct");
                 }
@@ -460,8 +537,14 @@ int main(int argc, char* argv[]) {
                 i++;
             }
         }
-        if(!strcmp(argv[2], "dec")) {
+        if(!strcmp(argv[2], "dec")) {   
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(oct_val(holder)) {
                     out_oct_dec(result, holder, 0);
@@ -474,6 +557,12 @@ int main(int argc, char* argv[]) {
         }
         if(!strcmp(argv[2], "hex")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(oct_val(holder)) {
                     out_oct_hex(result, holder, 0);
@@ -509,9 +598,16 @@ int main(int argc, char* argv[]) {
     if(!strcmp(argv[1], "dec")) {
         if(!strcmp(argv[2], "bin")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(dec_val(holder)) {
                     out_dec_bin(result, holder, 0);
+                    printf(" ");
                 } else {
                     printf("NVdec");
                 }
@@ -521,6 +617,12 @@ int main(int argc, char* argv[]) {
         }
         if(!strcmp(argv[2], "oct")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(dec_val(holder)) {
                     out_dec_oct(result, holder, 0);
@@ -533,6 +635,12 @@ int main(int argc, char* argv[]) {
         }
         if(!strcmp(argv[2], "hex")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 if(dec_val(holder)) {
                     out_dec_hex(result, holder, 0);
@@ -569,10 +677,17 @@ int main(int argc, char* argv[]) {
     if(!strcmp(argv[1], "hex")) {
         if(!strcmp(argv[2], "bin")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 removecaps(holder);
                 if(hex_val(holder)) {
                     out_hex_bin(result, holder, 0);
+                    printf(" ");
                 } else {
                     printf("NVhex");
                 }
@@ -582,6 +697,12 @@ int main(int argc, char* argv[]) {
         }
         if(!strcmp(argv[2], "oct")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 removecaps(holder);
                 if(hex_val(holder)) {
@@ -595,6 +716,12 @@ int main(int argc, char* argv[]) {
         }
         if(!strcmp(argv[2], "dec")) {
             while(i < argc - 3) {
+                if(j % 2 == 0) {
+                    SetConsoleTextAttribute(hCon, dflCol);
+                } else {
+                    SetConsoleTextAttribute(hCon, sndCol);
+                }
+                j++;
                 dyn_str_copy(holder, argv[3 + i], 0);
                 removecaps(holder);
                 if(hex_val(holder)) {
@@ -631,7 +758,7 @@ int main(int argc, char* argv[]) {
 
     
     
-    
+    SetConsoleTextAttribute(hCon, 7);
     dyn_str_free(holder);
     dyn_str_free(*result);
     free(result);
