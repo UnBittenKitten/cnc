@@ -1,4 +1,4 @@
-//Version 2.0
+//Version 2.0.1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +14,9 @@
 #include "libs/DStack.c"
 #include "validate.h"
 #include "arithmetic.h"
+#include "libs/dirent.h"
+#include <sys/stat.h>
+#include <ShlObj.h>
 
 char* colors[] = {"darkblue", "green", "lightblue", "red", "purple", "darkyellow", "white", "gray", "blue", "lightgreen", "lightblue", "orange", "magenta", "yellow", 0};
 
@@ -90,20 +93,44 @@ void helpcmd(int argc, char* argv[]) {
     return;
 }
 
-int exists(char fname[]) {
+char *generate_path() {
+    char *path = (char*)malloc(MAX_PATH + 50);
+    SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path);
+    strcat(path, "\\cnc");
+    DIR* dir = opendir(path);
+    if (dir) {
+        closedir(dir);
+    } else {
+        mkdir(path);
+    }
+    // strcat(path, "\\config.json");
+    return path;
+}
+
+int configexists(char fname[]) {
+    char* path = generate_path();
+    strcat(path, "\\");
+    strcat(path, fname);
     FILE *fp;
-    if((fp = fopen(fname, "r"))) {
+    if((fp = fopen(path, "r"))) {
         fclose(fp);
+        free(path);
         return 1;
     } else {
+        free(path);
         return 0;
     }
 }
 
 int readjson(cJSON** read_cjson, char filename[]) {
-    FILE *fp = fopen(filename, "r");
+    char* path = generate_path();
+    strcat(path, "\\");
+    strcat(path, filename);
+
+    FILE *fp = fopen(path, "r");
     if(fp == NULL) {
         printf("Error: Unable to open the file\n");
+        free(path);
         return 0;
     }   
 
@@ -122,10 +149,11 @@ int readjson(cJSON** read_cjson, char filename[]) {
             printf("Error: %s\n", error_ptr);
         }
         cJSON_Delete(*read_cjson);
+        free(path);
         return 0;
     }
     free(buffer);
-
+    free(path);
     return 1;
 }
 
@@ -144,9 +172,23 @@ int generate_config() {
 
     char *json_str = cJSON_Print(json);
 
-    FILE *fp = fopen("config.json", "w");
+    char *path = (char*)malloc(MAX_PATH + 50);
+    SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path);
+    strcat(path, "\\cnc");
+    DIR* dir = opendir(path);
+    if (dir) {
+        closedir(dir);
+    } else {
+        mkdir(path);
+    }
+    strcat(path, "\\config.json");
+
+
+    FILE *fp = fopen(path, "w");
     if(fp == NULL) {
         printf("Error: Unable to create config file\n");
+        cJSON_Delete(json);
+        free(path);
         return 1;
     }
     fputs(json_str, fp);
@@ -262,10 +304,13 @@ void config(int argc, char* argv[]) {
             cJSON_ReplaceItemInObjectCaseSensitive(json, "bases", new);
             char* json_str = cJSON_Print(json);
 
-            FILE* fp = fopen("config.json", "w");
+            char* path = generate_path();
+            strcat(path, "\\config.json");
+            FILE* fp = fopen(path, "w");
             if(fp == NULL) {
                 printf("Error: Unable to open file \"config.json\"\n");
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             fputs(json_str, fp);
@@ -276,6 +321,7 @@ void config(int argc, char* argv[]) {
             if(!arr) {
                 printf("Unable to get \"bases\" from config file\n");
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             iterator = NULL;
@@ -288,6 +334,7 @@ void config(int argc, char* argv[]) {
                 } else {
                     printf("invalid");
                     cJSON_Delete(json);
+                    free(path);
                     return;
                 }
             }
@@ -297,6 +344,7 @@ void config(int argc, char* argv[]) {
             cJSON_free(json_str);
             dstack_free(stack);
             cJSON_Delete(json);
+            free(path);
             return;
         }
 
@@ -330,16 +378,20 @@ void config(int argc, char* argv[]) {
                 cJSON_ReplaceItemInObjectCaseSensitive(json, "bases", new);
                 char* json_str = cJSON_Print(json);
 
-                FILE* fp = fopen("config.json", "w");
+                char* path = generate_path();
+                strcat(path, "\\config.json");
+                FILE* fp = fopen(path, "w");
                 if(fp == NULL) {
                     printf("Error: Unable to open file \"config.json\"\n");
                     cJSON_Delete(json);
+                    free(path);
                     return;
                 }
                 fputs(json_str, fp);
                 fclose(fp);
                 cJSON_free(json_str);
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             if(!isInt(argv[4])) {
@@ -399,10 +451,13 @@ void config(int argc, char* argv[]) {
             cJSON_ReplaceItemInObjectCaseSensitive(json, "bases", new);
             char* json_str = cJSON_Print(json);
 
-            FILE* fp = fopen("config.json", "w");
+            char* path = generate_path();
+            strcat(path, "\\config.json");
+            FILE* fp = fopen(path, "w");
             if(fp == NULL) {
                 printf("Error: Unable to open file \"config.json\"\n");
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             fputs(json_str, fp);
@@ -413,6 +468,7 @@ void config(int argc, char* argv[]) {
             if(!arr) {
                 printf("Unable to get \"bases\" from config file\n");
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             iterator = NULL;
@@ -425,6 +481,7 @@ void config(int argc, char* argv[]) {
                 } else {
                     printf("invalid");
                     cJSON_Delete(json);
+                    free(path);
                     return;
                 }
             }
@@ -434,6 +491,7 @@ void config(int argc, char* argv[]) {
             cJSON_free(json_str);
             dstack_free(stack);
             cJSON_Delete(json);
+            free(path);
             return;
         }
 
@@ -474,10 +532,13 @@ void config(int argc, char* argv[]) {
 
             char* json_str = cJSON_Print(json);
 
-            FILE* fp = fopen("config.json", "w");
+            char* path = generate_path();
+            strcat(path, "\\config.json");
+            FILE* fp = fopen(path, "w");
             if(fp == NULL) {
                 printf("Error: Unable to open file \"config.json\"\n");
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             fputs(json_str, fp);
@@ -486,6 +547,7 @@ void config(int argc, char* argv[]) {
             cJSON_free(json_str);
 
             cJSON_Delete(json);
+            free(path);
             return;
         }
 
@@ -512,10 +574,14 @@ void config(int argc, char* argv[]) {
             cJSON_AddItemToArray(new, cJSON_CreateNumber(16));
             cJSON_ReplaceItemInObjectCaseSensitive(json, "bases", new);
             char* json_str = cJSON_Print(json);
-            FILE* fp = fopen("config.json", "w");
+
+            char* path = generate_path();
+            strcat(path, "\\config.json");
+            FILE* fp = fopen(path, "w");
             if(fp == NULL) {
                 printf("Error: Unable to open file \"config.json\"\n");
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             fputs(json_str, fp);
@@ -526,6 +592,7 @@ void config(int argc, char* argv[]) {
             if(!arr) {
                 printf("Unable to get \"bases\" from config file\n");
                 cJSON_Delete(json);
+                free(path);
                 return;
             }
             cJSON* iterator = NULL;
@@ -538,11 +605,13 @@ void config(int argc, char* argv[]) {
                 } else {
                     printf("invalid");
                     cJSON_Delete(json);
+                    free(path);
                     return;
                 }
             }
             printf("]\n");
             cJSON_Delete(json);
+            free(path);
             return;
             
         }
@@ -586,10 +655,13 @@ void config(int argc, char* argv[]) {
         cJSON_ReplaceItemInObjectCaseSensitive(json, "primary-color", cJSON_CreateString(argv[3]));
         char* json_str = cJSON_Print(json);
 
-        FILE* fp = fopen("config.json", "w");
+        char* path = generate_path();
+        strcat(path, "\\config.json");
+        FILE* fp = fopen(path, "w");
         if(fp == NULL) {
             printf("Error: Unable to open file \"config.json\"\n");
             cJSON_Delete(json);
+            free(path);
             return;
         }
         fputs(json_str, fp);
@@ -597,6 +669,7 @@ void config(int argc, char* argv[]) {
         printf("Set primary color to %s.", argv[3]); //optional
         cJSON_free(json_str);
         cJSON_Delete(json);
+        free(path);
         return;
     }
 
@@ -624,10 +697,13 @@ void config(int argc, char* argv[]) {
         cJSON_ReplaceItemInObjectCaseSensitive(json, "secondary-color", cJSON_CreateString(argv[3]));
         char* json_str = cJSON_Print(json);
 
-        FILE* fp = fopen("config.json", "w");
+        char* path = generate_path();
+        strcat(path, "\\config.json");
+        FILE* fp = fopen(path, "w");
         if(fp == NULL) {
             printf("Error: Unable to open file \"config.json\"\n");
             cJSON_Delete(json);
+            free(path);
             return;
         }
         fputs(json_str, fp);
@@ -635,6 +711,7 @@ void config(int argc, char* argv[]) {
         printf("Set secondary color to %s.", argv[3]); //optional
         cJSON_free(json_str);
         cJSON_Delete(json);
+        free(path);
         return;
     }
 
@@ -689,10 +766,13 @@ void config(int argc, char* argv[]) {
 
         char* json_str = cJSON_Print(json);
 
-        FILE* fp = fopen("config.json", "w");
+        char* path = generate_path();
+        strcat(path, "\\config.json");
+        FILE* fp = fopen(path, "w");
         if(fp == NULL) {
             printf("Error: Unable to open file \"config.json\"\n");
             cJSON_Delete(json);
+            free(path);
             return;
         }
         fputs(json_str, fp);
@@ -701,6 +781,7 @@ void config(int argc, char* argv[]) {
 
         cJSON_free(json_str);
         cJSON_Delete(json);
+        free(path);
         return;
     }
 
@@ -737,7 +818,7 @@ void config(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
 
-    if(!exists("config.json")) {
+    if(!configexists("config.json")) {
         if(generate_config()) {
             printf("Error: Unable to generate config file\n");
         }
